@@ -21,7 +21,10 @@
             src = ./.;
             config = {
               pre-commit.commands = {
-                nixpkgs-fmt.run = "${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt {staged_files}";
+                nixpkgs-fmt = {
+                  run = "${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt {staged_files}";
+                  glob = "*.nix";
+                };
               };
             };
           };
