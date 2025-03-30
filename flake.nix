@@ -1,38 +1,37 @@
 {
-  description = "Easily manage git hooks with Nix, internally using lefthook.";
+  description = "lefthook.nix";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        lib = import ./lib { inherit pkgs; };
-        pkgs = import nixpkgs { inherit system; };
+  outputs = { self, nixpkgs }:
+    let
+      inherit (nixpkgs.lib) genAttrs platforms;
+      forAllSystems = f: genAttrs platforms.unix (system: f (import nixpkgs { inherit system; }));
 
-      in
-      {
-        inherit lib;
+    in
+    {
+      lib = forAllSystems (pkgs: (import ./lib { inherit pkgs; }));
 
-        checks = {
-          lefthook-check = lib.run {
-            src = ./.;
-            config = {
-              pre-commit.commands = {
-                nixpkgs-fmt = {
-                  run = "${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt {staged_files}";
-                  glob = "*.nix";
-                };
+      checks = forAllSystems (pkgs: {
+        lefthook-check = self.lib.${pkgs.system}.run {
+          src = ./.;
+          config = {
+            pre-commit.commands = {
+              nixpkgs-fmt = {
+                run = "${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt {staged_files}";
+                glob = "*.nix";
               };
             };
           };
         };
+      });
 
-        devShell = nixpkgs.legacyPackages.${system}.mkShell {
-          inherit (self.checks.${system}.lefthook-check) shellHook;
+      devShells = forAllSystems (pkgs: {
+        default = pkgs.mkShell {
+          inherit (self.checks.${pkgs.system}.lefthook-check) shellHook;
         };
-      }
-    );
+      });
+    };
 }
