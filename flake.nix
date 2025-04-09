@@ -5,7 +5,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
   };
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
       inherit (nixpkgs.lib) genAttrs platforms;
       forAllSystems = f: genAttrs platforms.unix (system: f (import nixpkgs { inherit system; }));
@@ -19,8 +20,8 @@
           src = ./.;
           config = {
             pre-commit.commands = {
-              nixpkgs-fmt = {
-                run = "${pkgs.lib.getExe pkgs.nixpkgs-fmt} {staged_files}";
+              nixfmt = {
+                run = "${pkgs.lib.getExe pkgs.nixfmt-rfc-style} {staged_files}";
                 glob = "*.nix";
               };
             };
@@ -33,5 +34,7 @@
           inherit (self.checks.${pkgs.system}.lefthook-check) shellHook;
         };
       });
+
+      formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
     };
 }

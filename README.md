@@ -31,8 +31,8 @@ Easily manage git hooks with Nix, internally using lefthook.
           src = ./.;
           config = {
             pre-commit.commands = {
-              nixpkgs-fmt = {
-                run = "${pkgs.lib.getExe pkgs.nixpkgs-fmt} {staged_files}";
+              nixfmt = {
+                run = "${pkgs.lib.getExe pkgs.nixfmt-rfc-style} {staged_files}";
                 glob = "*.nix";
               };
             };
