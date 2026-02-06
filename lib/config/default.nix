@@ -86,7 +86,8 @@ in
 
       if ! command -v git >/dev/null; then
         _log "WARNING: lefthook.nix: git command not found, skipping installation."
-      elif [ ! -d .git ]; then
+      elif [ ! -e .git ]; then
+        # .git can be an ASCII text file for worktrees, so we must use `-e` instead of `-d`
         _log "WARNING: lefthook.nix: .git directory does not exist, skipping installation."
       else
         # These update procedures compare before they write, to avoid
